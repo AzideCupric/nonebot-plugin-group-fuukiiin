@@ -20,4 +20,6 @@ _✨ "用来监察群友干坏事(重复刷屏，违禁词，违禁表情包)的
     <img src="https://img.shields.io/pypi/v/nonebot-plugin-status.svg" alt="pypi">
   </a-->
   <img src="https://img.shields.io/badge/python-3.10+-blue.svg" alt="python">
+<br>
+  <img src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=pink" alt="con-commit">
 </p>
