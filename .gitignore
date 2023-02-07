@@ -4,6 +4,7 @@
 ### Azide ###
 temp/
 temp.*
+*.md
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

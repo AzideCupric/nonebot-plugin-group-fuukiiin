@@ -451,6 +451,14 @@ dotenv = ["python-dotenv (>=0.10.4)"]
 email = ["email-validator (>=1.0.3)"]
 
 [[package]]
+name = "pyenchant"
+version = "3.2.2"
+description = "Python bindings for the Enchant spellchecking system"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[[package]]
 name = "pyfiglet"
 version = "0.8.post1"
 description = "Pure-python FIGlet implementation"
@@ -745,7 +753,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "feda3f6a5047c171c973c25a43d7109b1db251039b0a285510f6176c99e3b47b"
+content-hash = "aaf85d8aae563b76f73351101fdbf9223ca7c710ef929c0b67e7c6426afa4c3f"
 
 [metadata.files]
 anyio = []
@@ -915,6 +923,7 @@ poyo = [
 pre-commit = []
 prompt-toolkit = []
 pydantic = []
+pyenchant = []
 pyfiglet = [
     {file = "pyfiglet-0.8.post1-py2.py3-none-any.whl", hash = "sha256:d555bcea17fbeaf70eaefa48bb119352487e629c9b56f30f383e2c62dd67a01c"},
     {file = "pyfiglet-0.8.post1.tar.gz", hash = "sha256:c6c2321755d09267b438ec7b936825a4910fec696292139e664ca8670e103639"},
