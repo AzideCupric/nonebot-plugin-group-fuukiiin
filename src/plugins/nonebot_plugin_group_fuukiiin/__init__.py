@@ -1,9 +1,7 @@
 from nonebot import get_driver
 
+from . import pinyin_fuukiiin
 from .config import Config
-
-global_config = get_driver().config
-config = Config.parse_obj(global_config)
 
 # Export something for other plugin
 # export = nonebot.export()
@@ -12,4 +10,3 @@ config = Config.parse_obj(global_config)
 # @export.xxx
 # def some_function():
 #     pass
-

@@ -1,4 +1,4 @@
-import nonebot
+from nonebot import get_driver
 from pydantic import BaseSettings
 
 
@@ -9,9 +9,11 @@ class Config(BaseSettings):
     max_allowed_repeat_speaking_count: int = 4
     repeat_speaking_timeout: int = 10
 
+    managed_group: list[str] = []
+
     class Config:
         extra = "ignore"
 
 
-global_config = nonebot.get_driver().config
-plugin_config = Config(**global_config.dict())
+global_config = get_driver().config
+plugin_config = Config.parse_obj(global_config)
