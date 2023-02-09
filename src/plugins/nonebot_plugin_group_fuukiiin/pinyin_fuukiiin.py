@@ -3,6 +3,7 @@ from nonebot import on_command, on_message
 from nonebot.adapters.onebot.v11 import GROUP_MEMBER, Bot, GroupMessageEvent, Message
 from nonebot.log import logger
 from nonebot.rule import Rule
+from nonebot.typing import T_State
 
 from .rule_set import group_need_manage, is_long_letters_text
 
@@ -12,11 +13,14 @@ fuukiiin = on_message(permission=GROUP_MEMBER, rule=need_pinyin_fuukiiin, block=
 
 
 @fuukiiin.handle()
-async def pinyin_fuukiiin(bot: Bot, event: GroupMessageEvent):
-    logger.debug("got it!")
+async def pinyin_fuukiiin(bot: Bot, event: GroupMessageEvent, state: T_State):
+    logger.debug("pinyin fuukiiin got it!")
+
+    if not (clear_msg := state.get("clear_msg", "")):
+        return
 
     pinyin_checker = SpellChecker("en_US")
-    pinyin_checker.set_text(event.get_plaintext())
+    pinyin_checker.set_text(clear_msg)
 
     for _ in pinyin_checker:
         await fuukiiin.send(

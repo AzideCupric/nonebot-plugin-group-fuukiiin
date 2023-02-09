@@ -15,6 +15,7 @@ nonebot2 = ">=2.0.0-rc.2"
 nb-cli = "^0.6.7"
 transitions = "^0.9.0"
 pyenchant = "^3.2.2"
+pytest = "^7.2.1"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"
@@ -36,3 +37,6 @@ extend-exclude = '''
 profile = "black"
 line_length = 88
 skip_gitignore = true
+
+[tool.nonebot]
+plugins = ["src.plugins.nonebot_plugin_group_fuukiiin"]
