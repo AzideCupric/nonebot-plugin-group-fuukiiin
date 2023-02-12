@@ -12,7 +12,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 nonebot2 = ">=2.0.0-rc.2"
-nb-cli = "^0.6.7"
+nb-cli = "^1.0.5"
 transitions = "^0.9.0"
 pyenchant = "^3.2.2"
 pytest = "^7.2.1"

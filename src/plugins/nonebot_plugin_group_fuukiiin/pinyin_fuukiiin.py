@@ -5,9 +5,11 @@ from nonebot.log import logger
 from nonebot.rule import Rule
 from nonebot.typing import T_State
 
-from .rule_set import group_need_manage, is_long_letters_text
+from .rule_set import group_need_manage, is_long_letters_text, only_specific_member
 
-need_pinyin_fuukiiin = Rule(is_long_letters_text, group_need_manage)
+need_pinyin_fuukiiin = Rule(
+    is_long_letters_text, group_need_manage, only_specific_member
+)
 
 fuukiiin = on_message(permission=GROUP_MEMBER, rule=need_pinyin_fuukiiin, block=False)
 
@@ -34,9 +36,9 @@ async def pinyin_fuukiiin(bot: Bot, event: GroupMessageEvent, state: T_State):
         break
 
 
-test = on_command("测试Fuuki")
+test = on_command(cmd="测试PinyinFuuki", rule=group_need_manage)
 
 
 @test.handle()
 async def _():
-    await test.finish("检测Fuuki成功！")
+    await test.finish("检测PinyinFuuki成功！")

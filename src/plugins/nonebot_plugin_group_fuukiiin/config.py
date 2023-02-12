@@ -9,7 +9,8 @@ class Config(BaseSettings):
     max_allowed_repeat_speaking_count: int = 4
     repeat_speaking_timeout: int = 10
 
-    managed_group: list[str] = []
+    fuuki_managed_group: list[str] = []
+    fuuki_specific_member: list[str] = []
 
     class Config:
         extra = "ignore"
