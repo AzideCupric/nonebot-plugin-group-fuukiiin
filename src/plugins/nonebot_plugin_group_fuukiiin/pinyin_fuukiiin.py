@@ -1,3 +1,5 @@
+from asyncio import sleep
+
 from enchant.checker import SpellChecker
 from nonebot import on_command, on_message
 from nonebot.adapters.onebot.v11 import GROUP_MEMBER, Bot, GroupMessageEvent, Message
@@ -28,7 +30,9 @@ async def pinyin_fuukiiin(bot: Bot, event: GroupMessageEvent, state: T_State):
     for _ in pinyin_checker:
         await fuukiiin.send(
             Message(
-                "检测到群成员[CQ:at,qq={}]发送不允许的纯英文字符语句，执行禁言操作".format(event.get_user_id())
+                "检测到群成员[CQ:at,qq={}]发送不允许的纯英文字符语句\n执行禁言操作并撤回".format(
+                    event.get_user_id()
+                )
             )
         )
         await bot.set_group_ban(
@@ -37,6 +41,7 @@ async def pinyin_fuukiiin(bot: Bot, event: GroupMessageEvent, state: T_State):
         break
 
     if plugin_config.fuuki_pinyin_delete:
+        await sleep(1.5)
         await bot.delete_msg(message_id=event.message_id)
 
 

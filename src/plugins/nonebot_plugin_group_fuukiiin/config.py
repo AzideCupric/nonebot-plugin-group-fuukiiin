@@ -12,6 +12,7 @@ class Config(BaseSettings):
     fuuki_managed_group: list[str] = []
     fuuki_specific_member: list[str] = []
     fuuki_pinyin_delete: bool = True
+    fuuki_pinyin_check_length: int = 5
 
     class Config:
         extra = "ignore"
