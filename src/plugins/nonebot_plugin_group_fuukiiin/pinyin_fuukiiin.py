@@ -5,6 +5,7 @@ from nonebot.log import logger
 from nonebot.rule import Rule
 from nonebot.typing import T_State
 
+from .config import plugin_config
 from .rule_set import group_need_manage, is_long_letters_text, only_specific_member
 
 need_pinyin_fuukiiin = Rule(
@@ -35,8 +36,11 @@ async def pinyin_fuukiiin(bot: Bot, event: GroupMessageEvent, state: T_State):
         )
         break
 
+    if plugin_config.fuuki_pinyin_delete:
+        await bot.delete_msg(message_id=event.message_id)
 
-test = on_command(cmd="测试PinyinFuuki", rule=group_need_manage)
+
+test = on_command("测试PinyinFuuki", group_need_manage)
 
 
 @test.handle()
