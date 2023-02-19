@@ -7,7 +7,7 @@ from nonebot.log import logger
 from nonebot.rule import Rule
 from nonebot.typing import T_State
 
-from .config import plugin_config
+from .config import global_config, plugin_config
 from .rule_set import group_need_manage, is_long_letters_text, only_specific_member
 
 need_pinyin_fuukiiin = Rule(
@@ -35,14 +35,22 @@ async def pinyin_fuukiiin(bot: Bot, event: GroupMessageEvent, state: T_State):
                 )
             )
         )
+
         await bot.set_group_ban(
             group_id=event.group_id, user_id=int(event.get_user_id()), duration=300
         )
-        break
 
-    if plugin_config.fuuki_pinyin_delete:
-        await sleep(1.5)
-        await bot.delete_msg(message_id=event.message_id)
+        if plugin_config.fuuki_pinyin_delete:
+            await sleep(1.5)
+            await bot.delete_msg(message_id=event.message_id)
+
+        if global_config.superusers and plugin_config.fuuki_pinyin_delete_feedback:
+            feedback_msg = f"bot{bot.self_id} 撤回了 群{event.group_id} 中 成员{event.get_user_id()} 的违禁字符消息：{event.get_plaintext()}"
+            await bot.send_private_msg(
+                user_id=int(global_config.superusers.copy().pop()), message=feedback_msg
+            )
+
+        break
 
 
 test = on_command("测试PinyinFuuki", group_need_manage)
