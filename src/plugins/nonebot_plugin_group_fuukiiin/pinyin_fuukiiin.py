@@ -1,4 +1,5 @@
 from asyncio import sleep
+from typing import Any
 
 from enchant.checker import SpellChecker
 from nonebot import on_command, on_message
@@ -20,6 +21,8 @@ from .rule_set import group_need_manage, is_long_letters_text, only_specific_mem
 need_pinyin_fuukiiin = Rule(
     is_long_letters_text, group_need_manage, only_specific_member
 )
+
+pinyin_state: dict[Any, Any] = dict()
 
 fuukiiin = on_message(permission=GROUP_MEMBER, rule=need_pinyin_fuukiiin, block=False)
 
@@ -54,7 +57,7 @@ async def pinyin_fuukiiin(bot: Bot, event: GroupMessageEvent, state: T_State):
         if global_config.superusers and plugin_config.fuuki_pinyin_delete_feedback:
             feedback_msg = f"bot{bot.self_id} 撤回了 群{event.group_id} 中 成员{event.get_user_id()} 的违禁字符消息：{event.get_plaintext()}"
             # 将撤回的消息存储为全局变量，供其他部分使用
-            state["deleted_msg"] = event.get_plaintext()
+            pinyin_state["deleted_msg"] = (event.get_user_id(), event.get_plaintext())
 
             await bot.send_private_msg(
                 user_id=int(global_config.superusers.copy().pop()), message=feedback_msg
@@ -78,7 +81,9 @@ show_deleted_msg = on_command(
 
 @show_deleted_msg.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    if deleted_msg := state.get("deleted_msg", ""):
-        await show_deleted_msg.finish(deleted_msg)
+    if deleted_msg := pinyin_state.get("deleted_msg", ""):
+        await show_deleted_msg.finish(
+            f"上次的撤回消息>>\n成员{deleted_msg[0]}: {deleted_msg[1]}"
+        )
     else:
         await show_deleted_msg.finish("上次没有撤回消息")
