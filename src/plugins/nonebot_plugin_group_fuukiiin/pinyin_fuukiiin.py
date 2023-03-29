@@ -10,6 +10,7 @@ from nonebot.adapters.onebot.v11 import (
     Bot,
     GroupMessageEvent,
     Message,
+    MessageSegment,
 )
 from nonebot.log import logger
 from nonebot.rule import Rule
@@ -80,10 +81,14 @@ show_deleted_msg = on_command(
 
 
 @show_deleted_msg.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(bot: Bot, event: GroupMessageEvent):
     if deleted_msg := pinyin_state.get("deleted_msg", ""):
-        await show_deleted_msg.finish(
-            f"上次的撤回消息>>\n成员{deleted_msg[0]}: {deleted_msg[1]}"
+        msg = (
+            MessageSegment.text("上次撤回的消息>>\n")
+            + MessageSegment.at(deleted_msg[0])
+            + MessageSegment.text(f": {deleted_msg[1]}")
         )
+
+        await show_deleted_msg.finish(msg)
     else:
         await show_deleted_msg.finish("上次没有撤回消息")
