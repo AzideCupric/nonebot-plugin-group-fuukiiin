@@ -8,6 +8,7 @@ from nonebot.adapters.onebot.v11 import (
     GROUP_MEMBER,
     GROUP_OWNER,
     Bot,
+    Event,
     GroupMessageEvent,
     MessageSegment,
     PokeNotifyEvent,
@@ -72,9 +73,12 @@ async def _is_need_confirm(state: T_State) -> bool:
     return bool(state.get("confirm"))
 
 
-@fuukiiin.handle([Depends(_is_need_confirm)])
-async def pinyin_fuukiiin_poke(bot: Bot, event: PokeNotifyEvent, state: T_State):
+@fuukiiin.got("pokepoke", "请戳一戳", [Depends(_is_need_confirm)])
+async def pinyin_fuukiiin_poke(bot: Bot, event: Event, state: T_State):
     logger.debug("pinyin fuukiiin got poke!")
+
+    if not isinstance(event, PokeNotifyEvent):
+        await fuukiiin.reject()
 
     if not event.is_tome():
         await fuukiiin.reject()
