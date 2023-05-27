@@ -13,7 +13,7 @@ from nonebot.adapters.onebot.v11 import (
     PokeNotifyEvent,
 )
 from nonebot.log import logger
-from nonebot.params import ArgPlainText
+from nonebot.params import ArgPlainText, Depends
 from nonebot.rule import Rule
 from nonebot.typing import T_State
 from pydantic import BaseModel
@@ -54,7 +54,9 @@ async def pinyin_fuukiiin(event: GroupMessageEvent, state: T_State):
         await fuukiiin.finish()
 
     await fuukiiin.send(
-        MessageSegment.text(f"检测到群成员 {event.get_user_id()} 发送不正确的单词: {err.word} ...")
+        MessageSegment.text(
+            f"检测到群成员 {event.get_user_id()} 发送不正确的单词: {err.word} ...\n使用戳一戳确认撤回该消息"
+        )
     )
 
     state["confirm"] = {
@@ -66,11 +68,15 @@ async def pinyin_fuukiiin(event: GroupMessageEvent, state: T_State):
     }
 
 
-@fuukiiin.got("pokepoke", "使用戳一戳确认撤回该消息")
+async def _is_need_confirm(state: T_State) -> bool:
+    return bool(state.get("confirm"))
+
+
+@fuukiiin.handle([Depends(_is_need_confirm)])
 async def pinyin_fuukiiin_poke(bot: Bot, event: PokeNotifyEvent, state: T_State):
     logger.debug("pinyin fuukiiin got poke!")
 
-    if event.target_id != event.self_id:
+    if not event.is_tome():
         await fuukiiin.reject()
 
     group_id = state["confirm"]["group_id"]
