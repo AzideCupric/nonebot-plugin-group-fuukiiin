@@ -1,33 +1,20 @@
 def is_chinese(uchar):
-    if "\u4e00" <= uchar <= "\u9fa5":
-        return True
-    else:
-        return False
+    return "\u4e00" <= uchar <= "\u9fa5"
 
 
 def is_number(uchar):
-    if "\u0030" <= uchar <= "\u0039":
-        return True
-    else:
-        return False
+    return "\u0030" <= uchar <= "\u0039"
 
 
 def is_alphabet(uchar):
-    if ("\u0041" <= uchar <= "\u005a") or ("\u0061" <= uchar <= "\u007a"):
-        return True
-    else:
-        return False
+    return "\u0041" <= uchar <= "\u005a" or "\u0061" <= uchar <= "\u007a"
 
 
 def is_other_word(uchar):
-    if not (is_chinese(uchar) or is_number(uchar) or is_alphabet(uchar)):
-        return True
-    else:
-        return False
+    return not (is_chinese(uchar) or is_number(uchar) or is_alphabet(uchar))
 
 
 if __name__ == "__main__":
-
     str1 = "a一1&"
 
     assert is_alphabet(str1[0])

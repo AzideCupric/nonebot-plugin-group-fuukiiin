@@ -9,8 +9,8 @@ from nonebot.adapters.onebot.v11 import (
     GROUP_OWNER,
     Bot,
     GroupMessageEvent,
-    Message,
     MessageSegment,
+    PokeNotifyEvent,
 )
 from nonebot.log import logger
 from nonebot.params import ArgPlainText
@@ -19,13 +19,13 @@ from nonebot.typing import T_State
 from pydantic import BaseModel
 
 from .config import global_config, plugin_config
-from .rule_set import group_need_manage, is_long_letters_text, only_specific_member
+from .rule_set import group_need_manage, is_long_letters_text, only_targeted_member
 
 need_pinyin_fuukiiin = Rule(
-    is_long_letters_text, group_need_manage, only_specific_member
+    is_long_letters_text, group_need_manage, only_targeted_member
 )
 
-pinyin_state: dict[Any, Any] = dict()
+pinyin_state: dict[Any, Any] = {}
 
 
 class BannedMsg(BaseModel):
@@ -38,38 +38,62 @@ fuukiiin = on_message(permission=GROUP_MEMBER, rule=need_pinyin_fuukiiin, block=
 
 
 @fuukiiin.handle()
-async def pinyin_fuukiiin(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def pinyin_fuukiiin(event: GroupMessageEvent, state: T_State):
     logger.debug("pinyin fuukiiin got it!")
 
-    if not (clear_msg := state.get("clear_msg", "")):
+    clear_msg = state.get("clear_msg", "")
+    if not clear_msg:
         return
 
     pinyin_checker = SpellChecker("en_US")
     pinyin_checker.set_text(clear_msg)
 
-    for err in pinyin_checker:
-        await fuukiiin.send(
-            Message(
-                "检测到群成员[CQ:at,qq={}]发送不允许的纯英文字符语句\n执行禁言操作并撤回".format(
-                    event.get_user_id()
-                )
-            )
-        )
+    err = next(iter(pinyin_checker), None)
 
-        await bot.set_group_ban(
-            group_id=event.group_id, user_id=int(event.get_user_id()), duration=300
-        )
+    if not err:
+        await fuukiiin.finish()
+
+    await fuukiiin.send(
+        MessageSegment.text(f"检测到群成员 {event.get_user_id()} 发送不正确的单词: {err.word} 等\n使用戳一戳确认撤回该消息")
+    )
+
+    state["confirm"] = {
+        "user_id": event.get_user_id(),
+        "group_id": event.group_id,
+        "message_id": event.message_id,
+        "message": event.get_plaintext(),
+        "err_word": err.word,
+    }
+
+
+@fuukiiin.receive()
+async def pinyin_fuukiiin_poke(bot: Bot, event: PokeNotifyEvent, state: T_State):
+    logger.debug("pinyin fuukiiin got poke!")
+
+    if event.target_id != event.self_id:
+        await fuukiiin.reject_receive()
+
+    group_id = state["confirm"]["group_id"]
+    user_id = state["confirm"]["user_id"]
+    message_id = state["confirm"]["message_id"]
+    message = state["confirm"]["message"]
+    err = state["confirm"]["err_word"]
+
+    # 权限确认
+    if await GROUP_ADMIN(bot, event) or await GROUP_OWNER(bot, event):
+        await bot.set_group_ban(group_id=group_id, user_id=int(user_id), duration=300)
 
         if plugin_config.fuuki_pinyin_delete:
             await sleep(1.5)
-            await bot.delete_msg(message_id=event.message_id)
+            await bot.delete_msg(message_id=message_id)
 
         if global_config.superusers and plugin_config.fuuki_pinyin_delete_feedback:
-            feedback_msg = f"bot{bot.self_id} 撤回了 群{event.group_id} 中 成员{event.get_user_id()} 的违禁字符消息：{event.get_plaintext()}"
-
+            feedback_msg = (
+                f"bot{bot.self_id} 撤回了 群{group_id} 中 成员{user_id} 的违禁字符消息：{message}"
+            )
             # 将撤回的消息存储为全局变量，供其他部分使用
             banned_msg = BannedMsg(
-                user_id=event.get_user_id(), msg=event.get_plaintext(), err=err.word
+                user_id=user_id, msg=message, err=err
             )
             pinyin_state["deleted_msg"] = banned_msg
 
@@ -77,10 +101,25 @@ async def pinyin_fuukiiin(bot: Bot, event: GroupMessageEvent, state: T_State):
                 user_id=int(global_config.superusers.copy().pop()), message=feedback_msg
             )
 
-        break
+    else:
+        # 记录可能的恶意戳一戳
+        if state["spite_poke"][event.get_user_id()]:
+            state["spite_poke"][event.get_user_id()] += 1
+        else:
+            state["spite_poke"][event.get_user_id()] = 1
+        if state["spite_poke"][event.get_user_id()] > 2:
+            await bot.set_group_ban(
+                group_id=group_id, user_id=int(user_id), duration=300
+            )
+
+            del state["spite_poke"][event.get_user_id()]
+
+            await fuukiiin.finish("恶意，你也闭嘴")
+        else:
+            await fuukiiin.reject_receive("权限不足，下一个")
 
 
-test = on_command("测试PinyinFuuki", group_need_manage)
+test = on_command("测试Pinyin", group_need_manage)
 
 
 @test.handle()
@@ -94,8 +133,8 @@ show_deleted_msg = on_command(
 
 
 @show_deleted_msg.handle()
-async def msg_show(bot: Bot, event: GroupMessageEvent):
-    if deleted_msg := pinyin_state.get("deleted_msg", ""):
+async def msg_show(event: GroupMessageEvent):
+    if deleted_msg := pinyin_state.get("deleted_msg"):
         assert isinstance(deleted_msg, BannedMsg)
         msg = (
             MessageSegment.text("上次撤回的消息>>\n")
@@ -104,7 +143,6 @@ async def msg_show(bot: Bot, event: GroupMessageEvent):
             + MessageSegment.text(f"错误词汇：{deleted_msg.err}\n")
             + MessageSegment.text("使用`加入词典`命令将该词汇加入词典")
         )
-
         await show_deleted_msg.send(msg)
     else:
         await show_deleted_msg.finish("上次没有撤回消息")

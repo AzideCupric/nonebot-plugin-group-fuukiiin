@@ -1,5 +1,12 @@
+from typing import Optional
+
 from nonebot import get_driver
-from pydantic import BaseSettings
+from pydantic import BaseModel, BaseSettings
+
+
+class ManagedGroup(BaseModel):
+    group_id: str
+    targeted_members: list[str] = []
 
 
 class Config(BaseSettings):
@@ -9,8 +16,7 @@ class Config(BaseSettings):
     max_allowed_repeat_speaking_count: int = 4
     repeat_speaking_timeout: int = 10
 
-    fuuki_managed_group: list[str] = []
-    fuuki_specific_member: list[str] = []
+    fuuki_managed_group: list[ManagedGroup] = []
     fuuki_pinyin_delete: bool = True
     fuuki_pinyin_check_length: int = 5
     fuuki_pinyin_delete_feedback: bool = True

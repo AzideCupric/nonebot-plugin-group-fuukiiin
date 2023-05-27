@@ -23,7 +23,7 @@ async def is_long_letters_text(event: Event, state: T_State):
             f"msg length is over {plugin_config.fuuki_pinyin_check_length}, hit"
         )
 
-        cut_msg_length = len(msg) if len(msg) <= 50 else 50
+        cut_msg_length = min(len(msg), 50)
         cut_msg = list(msg[:50])
 
         outlier = 0
@@ -42,7 +42,7 @@ async def is_long_letters_text(event: Event, state: T_State):
             logger.debug(f"pinyin check hit by midium case({outlier})")
             state["clear_msg"] = "".join(cut_msg)
             return True
-        elif 20 < cut_msg_length and outlier / cut_msg_length < 0.3:
+        elif cut_msg_length > 20 and outlier / cut_msg_length < 0.3:
             logger.debug(
                 f"pinyin check hit by long case({outlier/cut_msg_length*100}%)"
             )
@@ -66,15 +66,23 @@ async def group_need_manage(event: GroupMessageEvent):
     return False
 
 
-async def only_specific_member(event: Event):
-    if not plugin_config.fuuki_specific_member:
-        logger.debug("no specific member, need to manage")
-        return True
+async def only_targeted_member(event: GroupMessageEvent):
+    """
+    如果群组需要管理，检查是否有针对用户.
+    如果有针对用户，则只有该针对用户被管理，其他用户不受管理;
+    如果没有针对用户，则所有用户都受管理
+    """
+    group_id = event.group_id
+    user_id = event.user_id
+    logger.debug(f"got group id:{group_id}, user id:{user_id}")
 
-    if plugin_config.fuuki_specific_member:
-        if event.get_user_id() in plugin_config.fuuki_specific_member:
-            logger.debug(f"{event.get_user_id()} need to manage")
-            return True
+    for group in plugin_config.fuuki_managed_group:
+        if str(group.group_id) == str(group_id):
+            if str(user_id) in group.targeted_members:
+                logger.debug(f"only targeted member managed: {user_id}")
+                return True
+            else:
+                logger.debug("all member need manage")
+                return False
 
-    logger.debug(f"{event.get_user_id()} no need to manage, ignore")
     return False
