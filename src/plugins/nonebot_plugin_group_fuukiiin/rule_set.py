@@ -56,12 +56,17 @@ async def is_long_letters_text(event: Event, state: T_State):
 
 
 async def group_need_manage(event: GroupMessageEvent):
-    logger.debug(f"got group id:{event.group_id}")
+    """
+    检查群组是否需要管理
+    """
+    logger.debug(f"got group id: {event.group_id}")
     if not plugin_config.fuuki_managed_group:
         return False
-    elif str(event.group_id) in plugin_config.fuuki_managed_group:
-        logger.debug("group need manage")
-        return True
+
+    for group in plugin_config.fuuki_managed_group:
+        if str(group.group_id) == str(event.group_id):
+            logger.debug("group need manage")
+            return True
 
     return False
 
