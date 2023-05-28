@@ -66,9 +66,9 @@ async def pinyin_fuukiiin(event: GroupMessageEvent, state: T_State):
     }
 
     await fuukiiin.pause(
-        MessageSegment.text(
-            f"检测到群成员 {event.get_user_id()} 发送不正确的单词: {err.word} ...\n使用戳一戳确认撤回该消息"
-        )
+        MessageSegment.text("检测到群成员")
+        + MessageSegment.at(event.get_user_id())
+        + MessageSegment.text(f"发送不正确的单词: {err.word} ...\n使用戳一戳确认撤回该消息")
     )
 
 
