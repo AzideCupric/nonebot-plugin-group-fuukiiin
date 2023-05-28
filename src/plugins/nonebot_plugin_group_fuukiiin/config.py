@@ -1,12 +1,13 @@
 from typing import Optional
 
 from nonebot import get_driver
+from nonebot.log import logger
 from pydantic import BaseModel, BaseSettings
 
 
 class ManagedGroup(BaseModel):
     group_id: str
-    targeted_members: list[str] = []
+    targeted_members: Optional[list[str]] = None
 
 
 class Config(BaseSettings):
@@ -27,3 +28,4 @@ class Config(BaseSettings):
 
 global_config = get_driver().config
 plugin_config = Config.parse_obj(global_config)
+logger.debug(f"plugin_config: {plugin_config.json(indent=4, ensure_ascii=False)}")

@@ -83,11 +83,15 @@ async def only_targeted_member(event: GroupMessageEvent):
 
     for group in plugin_config.fuuki_managed_group:
         if str(group.group_id) == str(group_id):
-            if str(user_id) in group.targeted_members:
-                logger.debug(f"only targeted member managed: {user_id}")
-                return True
+            if targeted_members := group.targeted_members:
+                if str(user_id) in targeted_members:
+                    logger.debug(f"{user_id} is targeted")
+                    return True
+                else:
+                    logger.debug(f"{user_id} is not targeted")
+                    return False
             else:
                 logger.debug("all member need manage")
-                return False
+                return True
 
     return False
