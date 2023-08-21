@@ -16,6 +16,8 @@ nb-cli = "^1.0.4"
 transitions = "^0.9.0"
 pyenchant = "^3.2.2"
 pytest = "^7.2.1"
+expiringdict = "^1.2.2"
+nonebot-adapter-onebot = "^2.2.4"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"
@@ -28,6 +30,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
+preview = true
 line-length = 88
 target-version = ["py310"]
 include = '\.pyi?$'

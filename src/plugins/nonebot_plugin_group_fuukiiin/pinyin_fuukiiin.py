@@ -9,7 +9,6 @@ from nonebot.adapters.onebot.v11 import (
     GROUP_MEMBER,
     GROUP_OWNER,
     Bot,
-    Event,
     GroupMessageEvent,
     MessageSegment,
     PokeNotifyEvent,
@@ -56,7 +55,7 @@ async def pinyin_fuukiiin(event: GroupMessageEvent, state: T_State):
 
     if not err:
         await fuukiiin.finish()
-
+    assert err
     state["confirm"] = {
         "user_id": event.get_user_id(),
         "group_id": event.group_id,
@@ -126,7 +125,7 @@ async def pinyin_fuukiiin_poke(
 
     if global_config.superusers and plugin_config.fuuki_pinyin_delete_feedback:
         feedback_msg = (
-            f"bot{bot.self_id} 撤回了 群{group_id} 中 成员{user_id} 的违禁字符消息：{message}"
+            f"bot{bot.self_id} 撤回了群 {group_id} 中 成员{user_id} 的违禁字符消息：{message}"
         )
         # 将撤回的消息存储为全局变量，供其他部分使用
         banned_msg = BannedMsg(user_id=user_id, msg=message, err=err)
