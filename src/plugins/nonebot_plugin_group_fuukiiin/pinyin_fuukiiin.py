@@ -37,7 +37,7 @@ class BannedMsg(BaseModel):
     err: str
 
 
-fuukiiin = on_message(permission=GROUP_MEMBER, rule=need_pinyin_fuukiiin)
+fuukiiin = on_message(permission=GROUP_MEMBER, rule=need_pinyin_fuukiiin, priority=5)
 
 
 @fuukiiin.handle()
