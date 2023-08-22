@@ -15,7 +15,7 @@ from .rule_set import group_need_manage
 
 MAX_REPEAT_COUNT = 3
 
-repeated_dict = ExpiringDict(max_len=100, max_age_seconds=20)
+repeated_dict = ExpiringDict(max_len=100, max_age_seconds=40)
 
 fuukiiin = on_message(
     permission=GROUP_MEMBER | GROUP_ADMIN, priority=1, rule=group_need_manage
@@ -47,7 +47,9 @@ async def repeat_fuukiiin(bot: Bot, event: GroupMessageEvent):
             case "admin":
                 logger.debug("发送者是管理员，不处以禁言，仅通知发送者")
                 user_records.pop(most_common_message)
-                await fuukiiin.finish("检测到管理员发送重复消息，警告")
+                await fuukiiin.finish(
+                    "检测到管理员" + MessageSegment.at(event.user_id) + "发送重复消息，警告"
+                )
             case "member":
                 logger.debug("发送者是群员，处以禁言5分钟，通知发送者")
                 await bot.set_group_ban(
@@ -60,7 +62,9 @@ async def repeat_fuukiiin(bot: Bot, event: GroupMessageEvent):
             case _:
                 logger.debug("发送者身份未知，不处以禁言，仅通知发送者")
                 user_records.pop(most_common_message)
-                await fuukiiin.finish("检测到未知成员发送重复消息，警告")
+                await fuukiiin.finish(
+                    "检测到未知成员" + MessageSegment.at(event.user_id) + "发送重复消息，警告"
+                )
 
     logger.debug("风纪委员检查到重复消息未超过阈值，不做处理，继续巡逻...")
     await fuukiiin.finish()
