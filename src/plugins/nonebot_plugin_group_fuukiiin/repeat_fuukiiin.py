@@ -10,6 +10,7 @@ from nonebot.adapters.onebot.v11 import (
     MessageSegment,
 )
 from nonebot.log import logger
+from nonebot.matcher import Matcher
 
 from .rule_set import group_need_manage
 
@@ -18,12 +19,15 @@ MAX_REPEAT_COUNT = 3
 repeated_dict = ExpiringDict(max_len=100, max_age_seconds=40)
 
 fuukiiin = on_message(
-    permission=GROUP_MEMBER | GROUP_ADMIN, priority=1, rule=group_need_manage
+    permission=GROUP_MEMBER | GROUP_ADMIN,
+    priority=1,
+    rule=group_need_manage,
+    block=False,
 )
 
 
 @fuukiiin.handle()
-async def repeat_fuukiiin(bot: Bot, event: GroupMessageEvent):
+async def repeat_fuukiiin(bot: Bot, event: GroupMessageEvent, matcher: Matcher):
     logger.debug("单人复读风纪委员巡逻中!")
     logger.trace(f"风纪委员当前所有记录: {repeated_dict}")
     stripped_msg = event.get_plaintext().strip()
@@ -47,6 +51,7 @@ async def repeat_fuukiiin(bot: Bot, event: GroupMessageEvent):
             case "admin":
                 logger.debug("发送者是管理员，不处以禁言，仅通知发送者")
                 user_records.pop(most_common_message)
+                matcher.stop_propagation()
                 await fuukiiin.finish(
                     "检测到管理员" + MessageSegment.at(event.user_id) + "发送重复消息，警告"
                 )
@@ -56,12 +61,14 @@ async def repeat_fuukiiin(bot: Bot, event: GroupMessageEvent):
                     group_id=event.group_id, user_id=event.user_id, duration=60 * 5
                 )
                 user_records.pop(most_common_message)
+                matcher.stop_propagation()
                 await fuukiiin.finish(
                     MessageSegment.at(event.user_id) + f"检测到重复消息{MAX_REPEAT_COUNT}次，已禁言"
                 )
             case _:
                 logger.debug("发送者身份未知，不处以禁言，仅通知发送者")
                 user_records.pop(most_common_message)
+                matcher.stop_propagation()
                 await fuukiiin.finish(
                     "检测到未知成员" + MessageSegment.at(event.user_id) + "发送重复消息，警告"
                 )
